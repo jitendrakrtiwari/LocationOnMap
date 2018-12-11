@@ -10,7 +10,6 @@ registerElement('MapView', () => MapView);
 @Component({
     selector: 'ns-showmap',
     templateUrl: './showmap.component.html',
-    styleUrls: ['./showmap.component.css'],
     moduleId: module.id,
 })
 export class ShowmapComponent implements OnInit {
@@ -23,9 +22,9 @@ export class ShowmapComponent implements OnInit {
 
     locations = []; // array which will store the locations
 
-    latitude = -33.86;
-    longitude = 151.20;
-    zoom = 8;
+    latitude: number;
+    longitude: number;
+    zoom = 16;
     minZoom = 0;
     maxZoom = 22;
     bearing = 0;
@@ -39,35 +38,20 @@ export class ShowmapComponent implements OnInit {
     }
 
     ngOnInit() {
-
+        this.latitude = 15.447819409392789;
+        this.longitude = 120.93888133764267;
     }
 
-    getCurrentLocation() {
-        if (!geolocation.isEnabled()) { // check if geolocation is not enabled
-            geolocation.enableLocationRequest(); // request for the user to enable it
-        }
-        // Get current location with high accuracy
-        geolocation.getCurrentLocation(
-            {
-                desiredAccuracy: Accuracy.high, // 3 meter accuracy 
-                updateDistance: 5, // 5 meters
-                timeout: 2000 // 2 seconds
-            }
-        ).
-            then(function (loc) {
-                if (loc) {
-                    this.start_location = loc;
-                    this.locations.push(this.start_location);
-                    console.log(loc);
-                    this.latitude = loc.latitude;
-                    this.longitude = loc.longitude;
-                    //viewModel.set('latitude', loc.latitude);
-                    //viewModel.set('longitude', loc.longitude);
-                }
-            }, function (e) {
-                console.log(e);
-                alert(e.message);
+    private getDeviceLocation(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            geolocation.enableLocationRequest().then(() => {
+                geolocation.getCurrentLocation({ desiredAccuracy: Accuracy.high, updateDistance: 5, timeout: 10000 }).then(location => {
+                    resolve(location);
+                }).catch(error => {
+                    reject(error);
+                });
             });
+        });
     }
 
     //Map events
@@ -75,15 +59,35 @@ export class ShowmapComponent implements OnInit {
         console.log('Map Ready');
 
         this.mapView = event.object;
+        var markerSet = [];
 
         console.log("Setting a marker...");
 
+        this.getDeviceLocation().then(result => {
+            console.log('get location');
+            this.latitude = result.latitude;
+            this.longitude = result.longitude;
+
+            this.mapView.addMarker(this.setMarker(this.latitude, this.longitude, 'red', 'Your Location', 'your Location'));
+            this.mapView.addMarker(this.setMarker(this.latitude + 0.00087653, this.longitude + 0.000924, 'green', 'location1', 'location1'));
+            this.mapView.addMarker(this.setMarker(this.latitude + 0.00126543, this.longitude + 0.0001524, 'green', 'location2', 'location2'));
+            this.mapView.addMarker(this.setMarker(this.latitude + 0.0005327, this.longitude + 0.00053878, 'green', 'location3', 'location3'));
+
+        }, error => {
+            console.error(error);
+        });
+
+
+    }
+
+    setMarker(lat: number, long: number, color: string = 'red', title: string = null, snippet: string = null): Marker {
         var marker = new Marker();
-        marker.position = Position.positionFromLatLng(this.latitude, this.longitude);
-        marker.title = "Sydney";
-        marker.snippet = "Australia";
+        marker.position = Position.positionFromLatLng(lat, long);
+        marker.title = title;
+        marker.snippet = snippet;
         marker.userData = { index: 1 };
-        this.mapView.addMarker(marker);
+        marker.color = color;
+        return marker;
     }
 
     onCoordinateTapped(args) {

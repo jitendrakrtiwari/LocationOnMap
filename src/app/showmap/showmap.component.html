@@ -1,5 +1,5 @@
 <Page xmlns="http://www.nativescript.org/tns.xsd" xmlns:maps="nativescript-google-maps-sdk">
-    <GridLayout>
+    <GridLayout *ngIf="latitude || longitude">
         <MapView #mapView [latitude]="latitude" [longitude]="longitude" [zoom]="zoom" [minZoom]="minZoom" [maxZoom]="maxZoom"
             [bearing]="bearing" [tilt]="tilt" i-padding="50,50,50,50" [padding]="padding" (mapReady)="onMapReady($event)"
             (markerSelect)="onMarkerEvent($event)" (markerBeginDragging)="onMarkerEvent($event)" (markerEndDragging)="onMarkerEvent($event)"
